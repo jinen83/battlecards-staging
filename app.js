@@ -26,18 +26,22 @@ document.addEventListener('DOMContentLoaded', function () {
     let isEditMode = false;
     let activeCardId = null;
     let activeSubTabId = null;
+    let expandedRows = {}; // { "cardId-tabId": Set(rowIndex1, rowIndex2) }
 
     // --- Data Persistence ---
     async function loadData() {
+        const storedData = localStorage.getItem('battleCardData');
         try {
-            const response = await fetch('data.json');
-            if (!response.ok) throw new Error('Network response was not ok');
-            const jsonData = await response.json();
-            // Use local storage as an override, but fall back to fetched data
-            const storedData = localStorage.getItem('battleCardData');
-            battleCardData = storedData ? JSON.parse(storedData) : jsonData;
+            if (storedData) {
+                battleCardData = JSON.parse(storedData);
+            } else {
+                const response = await fetch('data.json');
+                if (!response.ok) throw new Error('Network response was not ok');
+                battleCardData = await response.json();
+                saveData(); // Save initial data to local storage
+            }
         } catch (e) {
-            console.error("Failed to load data.json, using fallback. Error:", e);
+            console.error("Failed to load or parse data.json", e);
             // In a real app, you'd show an error message to the user.
         }
     }
@@ -49,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const createDeleteBtn = (path) => `<button class="edit-control text-red-500 hover:text-red-700 ml-2" data-action="delete" data-path="${path}"><ion-icon name="trash-outline"></ion-icon></button>`;
     
     function parseMarkdown(text = '') {
+        if (typeof text !== 'string') return '';
         return text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
             .replace(/\*(.*?)\*/g, '<em>$1</em>')     // Italic
@@ -63,8 +68,18 @@ document.addEventListener('DOMContentLoaded', function () {
             
             const rowsHTML = tab.content.map((item, contentIndex) => {
                 const cellsHTML = item.row.map((cell, cellIndex) => `<td class="px-6 py-4 editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].row[${cellIndex}]">${parseMarkdown(cell)}</td>`).join('');
-                const detailsHTML = `<tr class="details-row"><td colspan="${tab.headers.length + 2}" class="p-4 bg-gray-50"><div class="editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].details">${parseMarkdown(item.details)}</div></td></tr>`;
-                return `<tr class="expandable-row border-b group" data-row-index="${contentIndex}"><td class="px-2 py-4 text-center text-gray-400"><ion-icon name="chevron-forward-outline" class="expand-icon"></ion-icon></td>${cellsHTML}<td class="px-2 py-4 w-12 text-center">${createDeleteBtn(`${cardId}.tabs[${tabIndex}].content[${contentIndex}]`)}</td></tr>${detailsHTML}`;
+                
+                const detailsListHTML = (item.details || []).map((detail, detailIndex) => 
+                    `<div class="flex items-start group py-1">
+                        <span class="mr-2 text-gray-400">&bull;</span>
+                        <div class="flex-grow editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].details[${detailIndex}]">${parseMarkdown(detail)}</div>
+                        <div class="w-6">${createDeleteBtn(`${cardId}.tabs[${tabIndex}].content[${contentIndex}].details[${detailIndex}]`)}</div>
+                    </div>`
+                ).join('');
+
+                const detailsHTML = `<tr class="details-row"><td colspan="${tab.headers.length + 2}" class="p-4 bg-gray-50">${detailsListHTML}<div class="mt-2 edit-control"><button class="text-sm font-medium text-sky-600 hover:text-sky-800" data-action="add-detail" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].details">+ Add Detail</button></div></td></tr>`;
+                
+                return `<tr class="expandable-row border-b group" data-row-index="${contentIndex}" data-tab-id="${tab.id}"><td class="px-2 py-4 text-center text-gray-400"><ion-icon name="chevron-forward-outline" class="expand-icon"></ion-icon></td>${cellsHTML}<td class="px-2 py-4 w-12 text-center">${createDeleteBtn(`${cardId}.tabs[${tabIndex}].content[${contentIndex}]`)}</td></tr>${detailsHTML}`;
             }).join('');
 
             return `<div id="${tab.id}" class="content-pane sub-tab-content">${tab.description ? `<p class="text-gray-600 mb-4 editable" data-path="${cardId}.tabs[${tabIndex}].description">${parseMarkdown(tab.description)}</p>` : ''}<div class="table-container overflow-x-auto bg-white rounded-lg shadow"><table class="w-full text-sm text-left"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="w-12"></th>${headersHTML}</tr></thead><tbody>${rowsHTML}</tbody></table><div class="p-4 edit-control"><button class="text-sm font-medium text-sky-600 hover:text-sky-800" data-action="add-row" data-path="${cardId}.tabs[${tabIndex}].content">+ Add Row</button></div></div></div>`;
@@ -83,9 +98,27 @@ document.addEventListener('DOMContentLoaded', function () {
             mainNavList.innerHTML += `<li><a href="#" class="nav-link block w-full text-left px-4 py-2 rounded-lg transition-colors duration-200" data-target="${key}">${battleCardData[key].title}</a></li>`;
             mainContent.innerHTML += generateCardHTML(key, battleCardData[key]);
         }
+        applyExpandedState(); // Restore expanded rows after rendering
         const cardToSelect = battleCardData[currentActiveCard] ? currentActiveCard : Object.keys(battleCardData)[0];
         if (cardToSelect) {
             switchMainTab(cardToSelect, currentActiveSubTab);
+        }
+    }
+    
+    function applyExpandedState() {
+        for (const key in expandedRows) {
+            const [cardId, tabId] = key.split('~');
+            const tabElement = document.getElementById(tabId);
+            if (tabElement) {
+                expandedRows[key].forEach(rowIndex => {
+                    const row = tabElement.querySelector(`.expandable-row[data-row-index="${rowIndex}"]`);
+                    if (row) {
+                        row.classList.add('row-expanded');
+                        const details = row.nextElementSibling;
+                        if (details) details.classList.add('expanded');
+                    }
+                });
+            }
         }
     }
 
@@ -162,56 +195,47 @@ document.addEventListener('DOMContentLoaded', function () {
             inputModal.querySelectorAll('.modal-cancel-btn').forEach(b => b.addEventListener('click', onCancel));
         });
     }
-
-    // --- Event Listeners ---
-    mainNavList.addEventListener('click', (e) => e.target.closest('.nav-link') && (e.preventDefault(), switchMainTab(e.target.closest('.nav-link').dataset.target)));
-    mainContent.addEventListener('click', (e) => {
-        const subTabLink = e.target.closest('.sub-tab-link');
-        const expandableRow = e.target.closest('.expandable-row');
-        
-        if (subTabLink) { e.preventDefault(); switchSubTab(activeCardId, subTabLink.dataset.subTabTarget); }
-        if (expandableRow) {
-            expandableRow.classList.toggle('row-expanded');
-            const detailsRow = expandableRow.nextElementSibling;
-            if (detailsRow && detailsRow.classList.contains('details-row')) {
-                detailsRow.classList.toggle('expanded');
-            }
+    
+    // --- UNIFIED EVENT LISTENER ---
+    mainNavList.addEventListener('click', (e) => {
+        const link = e.target.closest('.nav-link');
+        if (link) {
+            e.preventDefault();
+            switchMainTab(link.dataset.target);
         }
     });
-    
-    mainContent.addEventListener('click', (e) => {
-        if (!isEditMode) return;
-        const editable = e.target.closest('.editable');
-        const actionBtn = e.target.closest('[data-action]');
 
-        if (editable) {
-            const originalHTML = editable.innerHTML;
-            const input = document.createElement('textarea');
-            input.value = getObjectByPath(battleCardData, editable.dataset.path);
-            input.className = "w-full h-auto p-1 border rounded bg-white";
-            input.style.minHeight = `${editable.offsetHeight + 10}px`;
-            editable.innerHTML = '';
-            editable.appendChild(input);
-            input.focus();
-            const saveChange = () => { const newValue = input.value; updateObjectByPath(battleCardData, editable.dataset.path, newValue); saveData(); editable.innerHTML = parseMarkdown(newValue); };
-            input.addEventListener('blur', saveChange);
-            input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); input.blur(); } if (e.key === 'Escape') editable.innerHTML = originalHTML; });
-        } else if (actionBtn) {
+    mainContent.addEventListener('click', (e) => {
+        const actionBtn = e.target.closest('[data-action]');
+        const editable = e.target.closest('.editable');
+        const subTabLink = e.target.closest('.sub-tab-link');
+        const expandableRow = e.target.closest('.expandable-row');
+
+        // Priority 1: Handle specific actions in edit mode
+        if (isEditMode && actionBtn) {
             e.preventDefault();
+            e.stopPropagation();
             const { action, path } = actionBtn.dataset;
             if (action === 'delete') {
                 if (confirm('Are you sure you want to delete this item?')) { deleteObjectByPath(battleCardData, path); saveData(); renderApp(); }
             } else if (action === 'add-row') {
                 const array = getObjectByPath(battleCardData, path);
                 const numColumns = array.length > 0 ? array[0].row.length : 3;
-                array.push({ row: Array(numColumns).fill("..."), details: "More details here..." });
+                array.push({ row: Array(numColumns).fill("..."), details: [] });
                 saveData();
                 renderApp();
+            } else if (action === 'add-detail') {
+                const array = getObjectByPath(battleCardData, path);
+                if(Array.isArray(array)) {
+                    array.push("New detail line...");
+                    saveData();
+                    renderApp();
+                }
             } else if (action === 'add-tab') {
                 promptForInput("Enter New Tab Title").then(title => {
                     if (title) {
                         const array = getObjectByPath(battleCardData, path);
-                        const newId = `${activeCardId}-${title.toLowerCase().replace(/\s+/g, '-')}`;
+                        const newId = `${activeCardId}-${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
                         array.push({ id: newId, title: title, headers: ["Feature", "DronaHQ", "New Competitor"], content: [] });
                         saveData();
                         activeSubTabId = newId;
@@ -228,6 +252,65 @@ document.addEventListener('DOMContentLoaded', function () {
                         renderApp();
                     }
                 });
+            }
+            return;
+        }
+
+        // Priority 2: Handle inline editing
+        if (isEditMode && editable) {
+            const isHeader = editable.tagName === 'TH';
+            const originalHTML = editable.innerHTML;
+            const input = isHeader ? document.createElement('input') : document.createElement('textarea');
+            if (isHeader) input.type = 'text';
+
+            input.value = getObjectByPath(battleCardData, editable.dataset.path);
+            input.className = "w-full h-auto p-1 border rounded bg-white";
+            if (!isHeader) input.style.minHeight = `${editable.offsetHeight + 20}px`;
+            
+            editable.innerHTML = '';
+            editable.appendChild(input);
+            input.focus();
+            
+            const saveChange = () => { 
+                const newValue = input.value; 
+                updateObjectByPath(battleCardData, editable.dataset.path, newValue); 
+                saveData(); 
+                editable.innerHTML = parseMarkdown(newValue); 
+            };
+
+            input.addEventListener('blur', saveChange);
+            input.addEventListener('keydown', (e) => { 
+                if (e.key === 'Enter' && (isHeader || !e.shiftKey)) { 
+                    e.preventDefault(); 
+                    input.blur(); 
+                } 
+                if (e.key === 'Escape') {
+                     editable.innerHTML = originalHTML; 
+                }
+            });
+            return;
+        }
+
+        // Priority 3: Handle normal interactions
+        if (subTabLink) { 
+            e.preventDefault(); 
+            switchSubTab(activeCardId, subTabLink.dataset.subTabTarget); 
+        } else if (expandableRow) {
+            const rowIndex = expandableRow.dataset.rowIndex;
+            const tabId = expandableRow.dataset.tabId;
+            const key = `${activeCardId}~${tabId}`;
+            if (!expandedRows[key]) expandedRows[key] = new Set();
+            
+            if (expandedRows[key].has(rowIndex)) {
+                expandedRows[key].delete(rowIndex);
+            } else {
+                expandedRows[key].add(rowIndex);
+            }
+
+            expandableRow.classList.toggle('row-expanded');
+            const detailsRow = expandableRow.nextElementSibling;
+            if (detailsRow && detailsRow.classList.contains('details-row')) {
+                detailsRow.classList.toggle('expanded');
             }
         }
     });
