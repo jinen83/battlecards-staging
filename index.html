@@ -4,19 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Battle Cards - CMS</title>
+    <!-- External CSS -->
     <link rel="stylesheet" href="style.css">
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Ionicons for icons -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 </head>
 <body class="text-gray-800">
 
     <div id="app-container" class="relative min-h-screen flex">
+        <!-- Mobile Menu Overlay -->
         <div id="mobile-menu-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 hidden lg:hidden"></div>
         
+        <!-- Sidebar Navigation -->
         <aside id="sidebar" class="absolute lg:relative inset-y-0 left-0 w-72 bg-white border-r border-gray-200 p-4 lg:p-6 shrink-0 flex flex-col z-30 transform -translate-x-full lg:translate-x-0">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-xl md:text-2xl font-bold text-sky-800">Battle Cards</h1>
@@ -39,17 +45,21 @@
             </div>
         </aside>
 
+        <!-- Main Content Area -->
         <div class="flex-1 flex flex-col w-full">
+            <!-- Mobile Header -->
             <header class="lg:hidden w-full bg-white border-b border-gray-200 p-4 flex justify-between items-center shrink-0">
                 <button id="open-menu-btn">
                     <ion-icon name="menu-outline" class="text-3xl text-gray-700"></ion-icon>
                 </button>
                 <h2 id="mobile-header-title" class="text-lg font-semibold"></h2>
-                <div class="w-8"></div> </header>
+                <div class="w-8"></div> <!-- Spacer -->
+            </header>
             <main id="main-content" class="flex-1 p-4 sm:p-6 md:p-8 lg:p-12"></main>
         </div>
     </div>
 
+    <!-- Modals -->
     <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-sm">
             <h3 class="text-xl font-semibold mb-4">Enter Password</h3>
@@ -74,6 +84,7 @@
         </div>
     </div>
 
+    <!-- External JavaScript -->
     <script src="app.js"></script>
 </body>
 </html>
