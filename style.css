@@ -1,0 +1,84 @@
+/* --- Base Styles --- */
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #f8fafc; 
+    overflow-x: hidden; 
+}
+.nav-link.active { 
+    background-color: #e0f2fe; 
+    color: #0c4a6e; 
+    font-weight: 600; 
+}
+.sub-tab-link.active { 
+    border-color: #0ea5e9; 
+    color: #0369a1; 
+}
+.content-pane { 
+    display: none; 
+    animation: fadeIn 0.3s ease-in-out; 
+}
+.content-pane.active { 
+    display: block; 
+}
+@keyframes fadeIn { 
+    from { opacity: 0; } 
+    to { opacity: 1; } 
+}
+
+/* --- Edit Mode Styles --- */
+.in-edit-mode .editable { 
+    cursor: pointer; 
+    background-color: #fef9c3; 
+    transition: background-color 0.3s; 
+    border-radius: 4px; 
+    padding: 2px;
+}
+.in-edit-mode .editable:hover { 
+    background-color: #fde047; 
+}
+.edit-control { 
+    display: none; 
+}
+.in-edit-mode .edit-control { 
+    display: flex; 
+}
+
+/* --- Layout & Scrolling --- */
+#app-container { 
+    height: 100vh; 
+    overflow: hidden; 
+}
+#main-content { 
+    overflow-y: auto; 
+}
+.table-container thead th { 
+    position: sticky; 
+    top: 0; 
+    z-index: 10; 
+    background-color: #f9fafb; /* bg-gray-50 */
+}
+
+/* --- Expandable Rows --- */
+.expandable-row {
+    cursor: pointer;
+}
+.details-row {
+    display: none;
+}
+.details-row.expanded {
+    display: table-row;
+}
+.expand-icon {
+    transition: transform 0.3s ease-in-out;
+}
+.row-expanded .expand-icon {
+    transform: rotate(90deg);
+}
+
+/* --- Mobile Navigation --- */
+#mobile-menu-overlay { 
+    transition: opacity 0.3s ease-in-out; 
+}
+#sidebar { 
+    transition: transform 0.3s ease-in-out; 
+}
