@@ -11,23 +11,17 @@
         "content": [
           {
             "row": ["UI", "Rigid, outdated admin UI. Customization is heavy developer work.", "Modern drag-and-drop UI builder. Build polished interfaces in minutes."],
-            "details": "The default Django admin is functional but not user-friendly for business teams. Achieving a modern look and feel requires overriding templates and writing significant CSS, which ties up expensive developer resources."
+            "details": [
+              "The default Django admin is functional but not user-friendly for business teams.",
+              "Achieving a modern look and feel requires overriding templates and writing significant CSS, which ties up expensive developer resources."
+            ]
           },
           {
             "row": ["Data Connectors", "Tied to a **single database**. Connecting to other sources requires custom code.", "**Dozens of pre-built connectors.** Connect to any data source in minutes, no code needed."],
-            "details": "Django's ORM is designed to work with one primary SQL database. To pull data from Salesforce, Stripe, or even a Google Sheet, a developer must write a custom integration, handle authentication, and manage API clients."
-          },
-          {
-            "row": ["Components", "No real components, just HTML templates. Table features like search/sort require full-stack coding.", "Rich, pre-built components. Tables have search, sort, and pagination built-in."],
-            "details": "Adding a simple feature like column sorting to a Django admin table is a non-trivial task that requires backend code changes. Our platform provides these features out-of-the-box."
-          },
-          {
-            "row": ["Framework & Package Upkeep", "Constant work to upgrade Django and manage/secure dozens of PyPI packages. Risk of \"dependency hell.\"", "**Zero upkeep for you.** We manage all frameworks, packages, and dependencies."],
-            "details": "The Python ecosystem moves quickly. Keeping Django and its third-party packages updated to patch security vulnerabilities is a constant, time-consuming task for the DevOps team."
-          },
-          {
-            "row": ["Hosting & Infra", "**Self-hosted and self-managed.** They are responsible for all servers, databases, security patches, and DevOps.", "**Fully hosted and managed.** We handle all infrastructure, security, and scalability."],
-            "details": ""
+            "details": [
+              "Django's ORM is designed to work with one primary SQL database.",
+              "To pull data from Salesforce, Stripe, or even a Google Sheet, a developer must write a custom integration, handle authentication, and manage API clients."
+            ]
           }
         ]
       }
@@ -45,31 +39,10 @@
         "content": [
           {
             "row": ["Logic Building", "Visual, block-based \"Action Flow\" builder, promoting a no-code/low-code approach.", "Code-centric, primarily relying on JavaScript in event handlers and transformers."],
-            "details": "DronaHQ's visual action flows allow business users and junior developers to build complex logic without writing code. Retool requires proficiency in JavaScript for most non-trivial actions, creating a higher barrier to entry."
-          },
-          {
-            "row": ["Builder Environment", "A single, unified builder for creating both web and native mobile applications.", "Separate builders and environments for web and mobile applications."],
-            "details": "Build once in DronaHQ and deploy to both web and mobile. Retool's separation of web and mobile apps means double the development and maintenance effort for cross-platform solutions."
-          },
-          {
-            "row": ["UI/UX Components", "Built-in support for advanced UI like popups, modals, and slide-out drawers.", "Often requires custom components or CSS/JS workarounds for complex UI patterns."],
-            "details": ""
-          }
-        ]
-      },
-      {
-        "id": "commercial-diff",
-        "title": "Commercial Differentiators",
-        "description": "DronaHQ's commercial model makes enterprise-grade features accessible on lower-tier plans.",
-        "headers": ["Feature", "DronaHQ", "Retool"],
-        "content": [
-          {
-            "row": ["Single Sign-On (SSO)", "Available on the **Business** plan.", "Generally reserved for the **Enterprise** plan."],
-            "details": "Secure, enterprise-grade authentication is available to smaller teams and businesses without forcing them into a high-cost enterprise contract."
-          },
-          {
-            "row": ["Localization", "Included in **all plans**.", "Reserved for the **Enterprise** plan."],
-            "details": "Support for global teams is a core feature in DronaHQ, not an enterprise add-on."
+            "details": [
+              "DronaHQ's visual action flows allow business users and junior developers to build complex logic without writing code.",
+              "Retool requires proficiency in JavaScript for most non-trivial actions, creating a higher barrier to entry."
+            ]
           }
         ]
       }
