@@ -4,100 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Battle Cards - CMS</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Ionicons for icons -->
+    <!-- Heroicons for icons -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <style>
         /* --- Base Styles --- */
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc; 
-            overflow-x: hidden; 
-        }
-        .nav-link.active { 
-            background-color: #e0f2fe; 
-            color: #0c4a6e; 
-            font-weight: 600; 
-        }
-        .sub-tab-link.active { 
-            border-color: #0ea5e9; 
-            color: #0369a1; 
-        }
-        .content-pane { 
-            display: none; 
-            animation: fadeIn 0.3s ease-in-out; 
-        }
-        .content-pane.active { 
-            display: block; 
-        }
-        @keyframes fadeIn { 
-            from { opacity: 0; } 
-            to { opacity: 1; } 
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        .nav-link.active { background-color: #e0f2fe; color: #0c4a6e; font-weight: 600; }
+        .sub-tab-link.active { border-color: #0ea5e9; color: #0369a1; }
+        .content-pane { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .content-pane.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         /* --- Edit Mode Styles --- */
-        .in-edit-mode .editable { 
-            cursor: pointer; 
-            background-color: #fef9c3; 
-            transition: background-color 0.3s; 
-            border-radius: 4px; 
-            padding: 2px;
-        }
-        .in-edit-mode .editable:hover { 
-            background-color: #fde047; 
-        }
-        .edit-control { 
-            display: none; 
-        }
-        .in-edit-mode .edit-control { 
-            display: flex; 
-        }
+        .in-edit-mode .editable { cursor: pointer; background-color: #fef9c3; transition: background-color 0.3s; border-radius: 4px; padding: 2px; }
+        .in-edit-mode .editable:hover { background-color: #fde047; }
+        .edit-control { display: none; }
+        .in-edit-mode .edit-control { display: flex; }
 
         /* --- Layout & Scrolling --- */
-        #app-container { 
-            height: 100vh; 
-            overflow: hidden; 
-        }
-        #main-content { 
-            overflow-y: auto; 
-        }
-        .table-container thead th { 
-            position: sticky; 
-            top: 0; 
-            z-index: 10; 
-            background-color: #f9fafb; /* bg-gray-50 */
-        }
-
-        /* --- Expandable Rows --- */
-        .expandable-row {
-            cursor: pointer;
-        }
-        .details-row {
-            display: none;
-        }
-        .details-row.expanded {
-            display: table-row;
-        }
-        .expand-icon {
-            transition: transform 0.3s ease-in-out;
-        }
-        .row-expanded .expand-icon {
-            transform: rotate(90deg);
-        }
+        #app-container { height: 100vh; overflow: hidden; }
+        #main-content { overflow-y: auto; }
+        .table-container thead th { position: sticky; top: 0; z-index: 10; }
 
         /* --- Mobile Navigation --- */
-        #mobile-menu-overlay { 
-            transition: opacity 0.3s ease-in-out; 
-        }
-        #sidebar { 
-            transition: transform 0.3s ease-in-out; 
-        }
+        #mobile-menu-overlay { transition: opacity 0.3s ease-in-out; }
+        #sidebar { transition: transform 0.3s ease-in-out; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -161,12 +99,20 @@
         <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-sm">
             <h3 id="input-modal-title" class="text-xl font-semibold mb-4"></h3>
             <input type="text" id="input-modal-field" class="w-full p-2 border rounded-md mb-4">
+            <div id="input-modal-select-container" class="hidden">
+                <label for="input-modal-select" class="text-sm font-medium text-gray-700">Tab Type</label>
+                <select id="input-modal-select" class="w-full p-2 border rounded-md mt-1">
+                    <option value="simple">Simple Table</option>
+                    <option value="retool">Comparison Table (Retool)</option>
+                </select>
+            </div>
             <div class="flex justify-end space-x-4 mt-6">
                 <button class="modal-cancel-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
                 <button id="input-modal-submit" class="px-4 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-lg">Submit</button>
             </div>
         </div>
     </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -186,6 +132,8 @@
             const inputModalTitle = document.getElementById('input-modal-title');
             const inputModalField = document.getElementById('input-modal-field');
             const inputModalSubmit = document.getElementById('input-modal-submit');
+            const inputModalSelectContainer = document.getElementById('input-modal-select-container');
+            const inputModalSelect = document.getElementById('input-modal-select');
             const sidebar = document.getElementById('sidebar');
             const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
             const openMenuBtn = document.getElementById('open-menu-btn');
@@ -194,153 +142,143 @@
 
             // --- Default Data Source (Fallback) ---
             const defaultBattleCardData = {
-              "django": {
-                "title": "Against: Django",
-                "subtitle": "Expose the hidden costs and limitations of using a heavy backend framework for internal tools.",
-                "tabs": [
-                  {
-                    "id": "key-differentiators",
-                    "title": "Key Differentiators",
-                    "description": null,
-                    "headers": ["Key Pointer", "Their Approach (Pain Point)", "Our Platform (Solution)"],
-                    "content": [
-                      {
-                        "row": ["UI", "Rigid, outdated admin UI. Customization is heavy developer work.", "Modern drag-and-drop UI builder. Build polished interfaces in minutes."],
-                        "details": [
-                            "The default Django admin is functional but not user-friendly for business teams.",
-                            "Achieving a modern look and feel requires overriding templates and writing significant CSS, which ties up expensive developer resources."
+                "django": {
+                    title: "Against: Django",
+                    subtitle: "Expose the hidden costs and limitations of using a heavy backend framework for internal tools.",
+                    tabs: [{
+                        id: "key-differentiators",
+                        title: "Key Differentiators",
+                        description: null,
+                        type: "simple",
+                        content: [
+                            { pointer: "UI", painPoint: "Rigid, outdated admin UI. Customization is heavy developer work.", solution: "Modern drag-and-drop UI builder. Build polished interfaces in minutes." },
+                            { pointer: "Data Connectors", painPoint: "Tied to a **single database**. Connecting to APIs or other sources requires custom code.", solution: "**Dozens of pre-built connectors.** Connect to any data source in minutes, no code needed." },
+                            { pointer: "Components", painPoint: "No real components, just HTML templates. Table features like search/sort require full-stack coding.", solution: "Rich, pre-built components. Tables have search, sort, and pagination built-in." },
+                            { pointer: "Framework & Package Upkeep", painPoint: "Constant work to upgrade Django and manage/secure dozens of PyPI packages. Risk of \"dependency hell.\"", solution: "**Zero upkeep for you.** We manage all frameworks, packages, and dependencies. You get an always-updated platform." },
+                            { pointer: "Hosting & Infra", painPoint: "**Self-hosted and self-managed.** They are responsible for all servers, databases, security patches, and DevOps.", solution: "**Fully hosted and managed.** We handle all infrastructure, security, and scalability. Zero DevOps for you." }
                         ]
-                      },
-                      {
-                        "row": ["Data Connectors", "Tied to a **single database**. Connecting to other sources requires custom code.", "**Dozens of pre-built connectors.** Connect to any data source in minutes, no code needed."],
-                        "details": [
-                            "Django's ORM is designed to work with one primary SQL database.",
-                            "To pull data from Salesforce, Stripe, or even a Google Sheet, a developer must write a custom integration, handle authentication, and manage API clients."
+                    }]
+                },
+                "php": {
+                    title: "Against: PHP / Laravel",
+                    subtitle: "Highlight the security risks, maintenance burden, and fragmentation of the PHP ecosystem.",
+                    tabs: [{
+                        id: "key-differentiators",
+                        title: "Key Differentiators",
+                        description: null,
+                        type: "simple",
+                        content: [
+                            { pointer: "UI", painPoint: "Inconsistent UI across different third-party admin packages. All customization requires a PHP developer.", solution: "**One unified, modern UI builder.** Creates a consistent, high-quality user experience for all tools." },
+                            { pointer: "Data Connectors", painPoint: "Built for a single database. External connections are manual coding projects.", solution: "**Language-agnostic connectors.** Stop writing boilerplate API code; start using your data now." },
+                            { pointer: "Components", painPoint: "Limited by the chosen admin package. Missing components require major custom development.", solution: "**Vast component library.** Get powerful building blocks like charts, modals, and forms instantly." },
+                            { pointer: "Framework & Package Upkeep", painPoint: "Requires managing both PHP and framework versions. Heavy reliance on Composer packages that need constant updates.", solution: "**Zero upkeep for you.** We manage all frameworks, packages, and dependencies. You get an always-updated platform." },
+                            { pointer: "Hosting & Infra", painPoint: "**High maintenance burden.** They manage complex LAMP/LEMP stacks. Older versions like PHP are **EOL** and a critical security risk.", solution: "**Always secure, always updated.** We eliminate the risk and overhead of server management and security patching." }
                         ]
-                      }
+                    }]
+                },
+                "react": {
+                    title: "Against: React + Node.js",
+                    subtitle: "Frame their \"total control\" as an extreme and unnecessary cost for internal tools, and sell them on \"Time-to-Value.\"",
+                    tabs: [{
+                        id: "key-differentiators",
+                        title: "Key Differentiators",
+                        description: null,
+                        type: "simple",
+                        content: [
+                            { pointer: "UI", painPoint: "**Maximum cost for custom UI.** Every element is built from scratch by expensive developers. Very slow to build and change.", solution: "**Speed and flexibility.** Drag-and-drop a beautiful UI in seconds, with powerful customization when needed." },
+                            { pointer: "Data Connectors", painPoint: "Every API connection is a manual Node.js coding project, handling auth, errors, and logic from scratch.", solution: "**Configuration, not code.** Our pre-built connectors handle the boilerplate, saving hundreds of hours." },
+                            { pointer: "Components", painPoint: "**They build their own components.** They spend weeks of developer time building a table that we give you in one click.", solution: "**Enterprise-grade component library on Day 1.** We've already built and perfected the tools you need." },
+                            { pointer: "Framework & Package Upkeep", painPoint: "**Highest upkeep burden.** Constant updates in the JS ecosystem. Managing hundreds of `npm` packages is a major risk and time sink.", solution: "**Zero upkeep for you.** We manage all frameworks, packages, and dependencies. You get an always-updated platform." },
+                            { pointer: "Hosting & Infra", painPoint: "**Highest complexity and cost.** Requires managing separate front-end/back-end deployments, CI/CD pipelines, and DevOps staff.", solution: "**Unified and simple.** A single platform for your UI and logic. We handle all deployments and infrastructure." }
+                        ]
+                    }]
+                },
+                "retool": {
+                    title: "Against: Retool",
+                    subtitle: "Position DronaHQ as the more accessible, scalable, and commercially friendly platform.",
+                    tabs: [
+                        { id: "tech-diff", title: "Technical Differentiators", description: null, type: "retool", content: [
+                            { feature: "Logic Building", dronaHq: "Visual, block-based \"Action Flow\" builder, promoting a no-code/low-code approach.", retool: "Code-centric, primarily relying on JavaScript in event handlers and transformers." },
+                            { feature: "Multipage State", dronaHq: "Seamless and native data sharing between pages, reducing development overhead.", retool: "Requires manual state management using Temporary State or URL Parameters." },
+                            { feature: "Builder Environment", dronaHq: "A single, unified builder for creating both web and native mobile applications.", retool: "Separate builders and environments for web and mobile applications." },
+                            { feature: "UI/UX Components", dronaHq: "Built-in support for advanced UI like popups, modals, and slide-out drawers.", retool: "Often requires custom components or CSS/JS workarounds for complex UI patterns." },
+                            { feature: "AI Assistance", dronaHq: "Integrated AI CoPilot for generating UI, queries, and logic from prompts.", retool: "AI features focused on query generation and code completion." }
+                        ]},
+                        { id: "commercial-diff", title: "Commercial Differentiators", description: "DronaHQ's commercial model makes enterprise-grade features accessible on lower-tier plans.", type: "retool", content: [
+                            { feature: "Single Sign-On (SSO)", dronaHq: "Available on the **Business** plan.", retool: "Generally reserved for the **Enterprise** plan." },
+                            { feature: "Localization", dronaHq: "Included in **all plans**.", retool: "Reserved for the **Enterprise** plan." },
+                            { feature: "Advanced Theming", dronaHq: "Included in **all plans**.", retool: "Full control is reserved for the **Enterprise** plan." }
+                        ]},
+                        { id: "support-diff", title: "Support & Onboarding", description: "The approach to developer enablement and support highlights a key strategic difference.", type: "retool", content: [
+                            { feature: "Developer Onboarding", dronaHq: "Accelerates developer productivity with a **\"Ramping up Devs\"** model, offering 24x7 expert assistance to reduce the learning curve.", retool: "Onboarding is primarily self-serve, relying on documentation, community forums, and traditional tiered support for troubleshooting." }
+                        ]}
                     ]
-                  }
-                ]
-              },
-              "retool": {
-                "title": "Against: Retool",
-                "subtitle": "Position DronaHQ as the more accessible, scalable, and commercially friendly platform.",
-                "tabs": [
-                  {
-                    "id": "tech-diff",
-                    "title": "Technical Differentiators",
-                    "description": null,
-                    "headers": ["Feature", "DronaHQ", "Retool"],
-                    "content": [
-                      {
-                        "row": ["Logic Building", "Visual, block-based \"Action Flow\" builder, promoting a no-code/low-code approach.", "Code-centric, primarily relying on JavaScript in event handlers and transformers."],
-                        "details": [
-                            "DronaHQ's visual action flows allow business users and junior developers to build complex logic without writing code.",
-                            "Retool requires proficiency in JavaScript for most non-trivial actions, creating a higher barrier to entry."
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
+                }
             };
             
-            // --- State ---
             let battleCardData = {};
             let isEditMode = false;
             let activeCardId = null;
-            let activeSubTabId = null;
-            let expandedRows = {}; // { "cardId-tabId": Set(rowIndex1, rowIndex2) }
 
             // --- Data Persistence ---
-            function loadData() {
-                const storedData = localStorage.getItem('battleCardData');
-                try {
-                    battleCardData = storedData ? JSON.parse(storedData) : JSON.parse(JSON.stringify(defaultBattleCardData));
-                } catch (e) {
-                    console.error("Failed to parse stored JSON, falling back to default.", e);
-                    battleCardData = JSON.parse(JSON.stringify(defaultBattleCardData));
-                }
+            async function loadData() {
+        const storedData = localStorage.getItem('battleCardData');
+        try {
+            if (storedData) {
+                battleCardData = JSON.parse(storedData);
+            } else {
+                const response = await fetch('data.json');
+                battleCardData = await response.json();
+                saveData(); // Save initial data to local storage
             }
-            function saveData() {
-                localStorage.setItem('battleCardData', JSON.stringify(battleCardData, null, 2));
-            }
+        } catch (e) {
+            console.error("Failed to load or parse data.json", e);
+            // In a real app, you'd show an error message to the user.
+        }
+    }
+            function saveData() { localStorage.setItem('battleCardData', JSON.stringify(battleCardData, null, 2)); }
 
-            // --- HTML Generation & Rendering ---
+            // --- HTML Generation ---
             const createDeleteBtn = (path) => `<button class="edit-control text-red-500 hover:text-red-700 ml-2" data-action="delete" data-path="${path}"><ion-icon name="trash-outline"></ion-icon></button>`;
             
-            function parseMarkdown(text = '') {
-                if (typeof text !== 'string') return '';
-                return text
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')     // Italic
-                    .replace(/\n/g, '<br>');                      // Newlines
-            }
-
             function generateCardHTML(cardId, cardData) {
-                const tabs = cardData.tabs || [];
-                const tabsNavHTML = tabs.map((t, i) => `<div class="relative group"><button class="sub-tab-link whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-sub-tab-target="${t.id}">${t.title}</button><div class="absolute top-0 right-0">${createDeleteBtn(`${cardId}.tabs[${i}]`)}</div></div>`).join('') + `<div class="py-4 px-1 edit-control"><button class="text-sm font-medium text-sky-600 hover:text-sky-800" data-action="add-tab" data-path="${cardId}.tabs">+ Add Tab</button></div>`;
+                const tabsNavHTML = cardData.tabs.map((t,i) => `<div class="relative group"><button class="sub-tab-link whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-sub-tab-target="${t.id}">${t.title}</button><div class="absolute top-0 right-0">${createDeleteBtn(`${cardId}.tabs[${i}]`)}</div></div>`).join('') + `<div class="py-4 px-1 edit-control"><button class="text-sm font-medium text-sky-600 hover:text-sky-800" data-action="add-tab" data-path="${cardId}.tabs">+ Add Tab</button></div>`;
                 
-                const tabsContentHTML = tabs.map((tab, tabIndex) => {
-                    const headersHTML = tab.headers.map((h, i) => `<th class="px-6 py-3 editable" data-path="${cardId}.tabs[${tabIndex}].headers[${i}]">${h}</th>`).join('') + `<th class="w-12 edit-control"><button class="text-sky-600 hover:text-sky-800" data-action="add-column" data-path="${cardId}.tabs[${tabIndex}]"><ion-icon name="add-circle-outline" class="text-lg"></ion-icon></button></th>`;
-                    
-                    const rowsHTML = tab.content.map((item, contentIndex) => {
-                        const cellsHTML = item.row.map((cell, cellIndex) => `<td class="px-6 py-4 editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].row[${cellIndex}]">${parseMarkdown(cell)}</td>`).join('');
-                        
-                        const detailsListHTML = (item.details || []).map((detail, detailIndex) => 
-                            `<div class="flex items-start group py-1">
-                                <span class="mr-2 text-gray-400">&bull;</span>
-                                <div class="flex-grow editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].details[${detailIndex}]">${parseMarkdown(detail)}</div>
-                                <div class="w-6">${createDeleteBtn(`${cardId}.tabs[${tabIndex}].content[${contentIndex}].details[${detailIndex}]`)}</div>
-                            </div>`
-                        ).join('');
+                const tabsContentHTML = cardData.tabs.map((tab, tabIndex) => {
+                    let rowsHTML = '';
+                    let tableHeaderHTML = '';
 
-                        const detailsHTML = `<tr class="details-row"><td colspan="${tab.headers.length + 2}" class="p-4 bg-gray-50">${detailsListHTML}<div class="mt-2 edit-control"><button class="text-sm font-medium text-sky-600 hover:text-sky-800" data-action="add-detail" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].details">+ Add Detail</button></div></td></tr>`;
-                        
-                        return `<tr class="expandable-row border-b group" data-row-index="${contentIndex}" data-tab-id="${tab.id}"><td class="px-2 py-4 text-center text-gray-400"><ion-icon name="chevron-forward-outline" class="expand-icon"></ion-icon></td>${cellsHTML}<td class="px-2 py-4 w-12 text-center">${createDeleteBtn(`${cardId}.tabs[${tabIndex}].content[${contentIndex}]`)}</td></tr>${detailsHTML}`;
-                    }).join('');
+                    if (tab.type === 'simple') {
+                        tableHeaderHTML = `<tr><th class="px-6 py-3">Key Pointer</th><th class="px-6 py-3">Their Approach (Pain Point)</th><th class="px-6 py-3 bg-sky-50 text-sky-800">Our Platform (Solution)</th><th class="w-12"></th></tr>`;
+                        rowsHTML = tab.content.map((p, contentIndex) => `<tr class="border-b group"><td class="px-6 py-4 font-semibold editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].pointer">${p.pointer}</td><td class="px-6 py-4 editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].painPoint">${p.painPoint}</td><td class="px-6 py-4 bg-sky-50 editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].solution">${p.solution}</td><td class="px-2 py-4 w-12 text-center">${createDeleteBtn(`${cardId}.tabs[${tabIndex}].content[${contentIndex}]`)}</td></tr>`).join('');
+                    } else { // Retool type
+                        tableHeaderHTML = `<tr><th class="px-6 py-3">Feature</th><th class="px-6 py-3 bg-sky-50 text-sky-800">DronaHQ</th><th class="px-6 py-3">Retool</th><th class="w-12"></th></tr>`;
+                        rowsHTML = tab.content.map((c, contentIndex) => `<tr class="border-b group"><td class="px-6 py-4 font-semibold editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].feature">${c.feature}</td><td class="px-6 py-4 bg-sky-50 editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].dronaHq">${c.dronaHq}</td><td class="px-6 py-4 editable" data-path="${cardId}.tabs[${tabIndex}].content[${contentIndex}].retool">${c.retool}</td><td class="px-2 py-4 w-12 text-center">${createDeleteBtn(`${cardId}.tabs[${tabIndex}].content[${contentIndex}]`)}</td></tr>`).join('');
+                    }
 
-                    return `<div id="${tab.id}" class="content-pane sub-tab-content">${tab.description ? `<p class="text-gray-600 mb-4 editable" data-path="${cardId}.tabs[${tabIndex}].description">${parseMarkdown(tab.description)}</p>` : ''}<div class="table-container overflow-x-auto bg-white rounded-lg shadow"><table class="w-full text-sm text-left"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="w-12"></th>${headersHTML}</tr></thead><tbody>${rowsHTML}</tbody></table><div class="p-4 edit-control"><button class="text-sm font-medium text-sky-600 hover:text-sky-800" data-action="add-row" data-path="${cardId}.tabs[${tabIndex}].content">+ Add Row</button></div></div></div>`;
+                    return `<div id="${tab.id}" class="content-pane sub-tab-content">${tab.description ? `<p class="text-gray-600 mb-4 editable" data-path="${cardId}.tabs[${tabIndex}].description">${tab.description}</p>` : ''}<div class="table-container overflow-x-auto bg-white rounded-lg shadow"><table class="w-full text-sm text-left"><thead class="text-xs text-gray-700 uppercase bg-gray-50">${tableHeaderHTML}</thead><tbody>${rowsHTML}</tbody></table><div class="p-4 edit-control"><button class="text-sm font-medium text-sky-600 hover:text-sky-800" data-action="add-row" data-path="${cardId}.tabs[${tabIndex}].content" data-type="${tab.type}">+ Add Row</button></div></div></div>`;
                 }).join('');
 
-                return `<div id="${cardId}" class="content-pane battle-card-content"><div class="flex justify-between items-center"><h2 class="text-2xl md:text-3xl font-bold mb-2 editable" data-path="${cardId}.title">${cardData.title}</h2>${createDeleteBtn(cardId)}</div><p class="text-gray-500 mb-8 editable" data-path="${cardId}.subtitle">${parseMarkdown(cardData.subtitle)}</p><div class="border-b border-gray-200 mb-6"><nav class="sub-tab-nav -mb-px flex flex-wrap space-x-4 sm:space-x-8">${tabsNavHTML}</nav></div>${tabsContentHTML}</div>`;
+                return `<div id="${cardId}" class="content-pane battle-card-content"><div class="flex justify-between items-center"><h2 class="text-2xl md:text-3xl font-bold mb-2 editable" data-path="${cardId}.title">${cardData.title}</h2>${createDeleteBtn(cardId)}</div><p class="text-gray-500 mb-8 editable" data-path="${cardId}.subtitle">${cardData.subtitle}</p><div class="border-b border-gray-200 mb-6"><nav class="sub-tab-nav -mb-px flex flex-wrap space-x-4 sm:space-x-8">${tabsNavHTML}</nav></div>${tabsContentHTML}</div>`;
             }
 
             // --- App Logic ---
             function renderApp() {
                 const currentActiveCard = activeCardId;
-                const currentActiveSubTab = activeSubTabId;
                 mainNavList.innerHTML = '';
                 mainContent.innerHTML = '';
                 for (const key in battleCardData) {
-                    mainNavList.innerHTML += `<li><a href="#" class="nav-link block w-full text-left px-4 py-2 rounded-lg transition-colors duration-200" data-target="${key}">${battleCardData[key].title}</a></li>`;
-                    mainContent.innerHTML += generateCardHTML(key, battleCardData[key]);
+                    const card = battleCardData[key];
+                    mainNavList.innerHTML += `<li><a href="#" class="nav-link block w-full text-left px-4 py-2 rounded-lg transition-colors duration-200" data-target="${key}">${card.title}</a></li>`;
+                    mainContent.innerHTML += generateCardHTML(key, card);
                 }
-                applyExpandedState(); // Restore expanded rows after rendering
                 const cardToSelect = battleCardData[currentActiveCard] ? currentActiveCard : Object.keys(battleCardData)[0];
                 if (cardToSelect) {
-                    switchMainTab(cardToSelect, currentActiveSubTab);
-                }
-            }
-            
-            function applyExpandedState() {
-                for (const key in expandedRows) {
-                    const [cardId, tabId] = key.split('~');
-                    const tabElement = document.getElementById(tabId);
-                    if (tabElement) {
-                        expandedRows[key].forEach(rowIndex => {
-                            const row = tabElement.querySelector(`.expandable-row[data-row-index="${rowIndex}"]`);
-                            if (row) {
-                                row.classList.add('row-expanded');
-                                const details = row.nextElementSibling;
-                                if (details) details.classList.add('expanded');
-                            }
-                        });
-                    }
+                    switchMainTab(cardToSelect);
                 }
             }
 
-            function switchMainTab(targetId, subTabToSelect = null) {
+            function switchMainTab(targetId) {
                 activeCardId = targetId;
                 document.querySelectorAll('.battle-card-content').forEach(p => p.classList.remove('active'));
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -350,13 +288,12 @@
                     targetPane.classList.add('active');
                     targetLink.classList.add('active');
                     mobileHeaderTitle.textContent = battleCardData[targetId].title;
-                    initializeSubTabs(targetId, subTabToSelect);
+                    initializeSubTabs(targetId);
                 }
                 toggleMobileMenu(false);
             }
             
             function switchSubTab(cardId, tabId) {
-                activeSubTabId = tabId;
                 const cardElement = document.getElementById(cardId);
                 if (!cardElement) return;
                 cardElement.querySelectorAll('.sub-tab-content').forEach(p => p.classList.remove('active'));
@@ -369,18 +306,14 @@
                 }
             }
 
-            function initializeSubTabs(cardId, subTabToSelect = null) {
-                const cardData = battleCardData[cardId];
-                if (!cardData || !cardData.tabs || cardData.tabs.length === 0) return;
-
+            function initializeSubTabs(cardId) {
                 const subTabNav = document.getElementById(cardId)?.querySelector('.sub-tab-nav');
-                if (subTabNav) {
-                    let tabToSelect = subTabToSelect;
-                    if (!tabToSelect || !document.getElementById(tabToSelect)) {
-                         const firstTabButton = subTabNav.children[0].querySelector('button');
-                         if(firstTabButton) tabToSelect = firstTabButton.dataset.subTabTarget;
+                if (subTabNav && subTabNav.children.length > 0) {
+                    const firstTabButton = subTabNav.children[0].querySelector('button');
+                    if (firstTabButton) {
+                        const firstTabId = firstTabButton.dataset.subTabTarget;
+                        if(firstTabId) switchSubTab(cardId, firstTabId);
                     }
-                    if(tabToSelect) switchSubTab(cardId, tabToSelect);
                 }
             }
 
@@ -402,158 +335,95 @@
             function updateObjectByPath(obj, path, value) { const keys = path.replace(/\[(\w+)\]/g, '.$1').split('.'); let current = obj; for (let i = 0; i < keys.length - 1; i++) { current = current[keys[i]]; } current[keys[keys.length - 1]] = value; }
             function deleteObjectByPath(obj, path) { const keys = path.replace(/\[(\w+)\]/g, '.$1').split('.'); let current = obj; for (let i = 0; i < keys.length - 1; i++) { current = current[keys[i]]; } const finalKey = keys[keys.length - 1]; if (Array.isArray(current)) current.splice(parseInt(finalKey), 1); else delete current[finalKey]; }
 
-            function promptForInput(title) {
+            function promptForInput(title, showSelect = false) {
                 return new Promise(resolve => {
                     inputModal.style.display = 'flex';
                     inputModalTitle.textContent = title;
                     inputModalField.value = '';
                     inputModalField.focus();
+                    inputModalSelectContainer.style.display = showSelect ? 'block' : 'none';
                     
-                    const onSubmit = () => { resolve(inputModalField.value); cleanup(); };
+                    const onSubmit = () => {
+                        const result = { value: inputModalField.value };
+                        if (showSelect) {
+                            result.type = inputModalSelect.value;
+                        }
+                        resolve(result);
+                        cleanup();
+                    };
                     const onCancel = () => { resolve(null); cleanup(); };
-                    const cleanup = () => { inputModal.style.display = 'none'; inputModalSubmit.removeEventListener('click', onSubmit); inputModal.querySelectorAll('.modal-cancel-btn').forEach(b => b.removeEventListener('click', onCancel)); };
+                    const cleanup = () => {
+                        inputModal.style.display = 'none';
+                        inputModalSubmit.removeEventListener('click', onSubmit);
+                        inputModal.querySelectorAll('.modal-cancel-btn').forEach(b => b.removeEventListener('click', onCancel));
+                    };
+
                     inputModalSubmit.addEventListener('click', onSubmit);
                     inputModal.querySelectorAll('.modal-cancel-btn').forEach(b => b.addEventListener('click', onCancel));
                 });
             }
-            
-            // --- Event Listeners ---
-            mainNavList.addEventListener('click', (e) => {
-                const link = e.target.closest('.nav-link');
-                if (link) {
-                    e.preventDefault();
-                    switchMainTab(link.dataset.target);
-                }
-            });
 
-            mainContent.addEventListener('dblclick', (e) => {
+            // --- Event Listeners ---
+            mainNavList.addEventListener('click', (e) => e.target.closest('.nav-link') && (e.preventDefault(), switchMainTab(e.target.closest('.nav-link').dataset.target)));
+            mainContent.addEventListener('click', (e) => {
+                const subTabLink = e.target.closest('.sub-tab-link');
+                if (subTabLink) { e.preventDefault(); switchSubTab(activeCardId, subTabLink.dataset.subTabTarget); }
+            });
+            
+            mainContent.addEventListener('click', (e) => {
                 if (!isEditMode) return;
                 const editable = e.target.closest('.editable');
+                const actionBtn = e.target.closest('[data-action]');
+
                 if (editable) {
-                    const path = editable.dataset.path;
-                    const isHeader = editable.tagName === 'TH';
-                    // BUG FIX: Determine multiline based on path, not just tag.
-                    const isMultiLine = path.includes('.details[') || path.includes('.subtitle') || path.includes('.description') || path.includes('.painPoint') || path.includes('.solution');
-
-                    const originalHTML = editable.innerHTML;
-                    const input = isHeader || !isMultiLine ? document.createElement('input') : document.createElement('textarea');
-                    if (!isMultiLine) input.type = 'text';
-
-                    input.value = getObjectByPath(battleCardData, path);
+                    const originalText = editable.innerHTML;
+                    const input = document.createElement('textarea');
+                    input.value = editable.innerText.trim();
                     input.className = "w-full h-auto p-1 border rounded bg-white";
-                    if (isMultiLine) input.style.minHeight = `${editable.offsetHeight + 20}px`;
-                    
+                    input.style.minHeight = `${editable.offsetHeight + 10}px`;
                     editable.innerHTML = '';
                     editable.appendChild(input);
                     input.focus();
-                    
-                    const saveChange = () => { 
-                        const newValue = input.value; 
-                        updateObjectByPath(battleCardData, path, newValue); 
-                        saveData(); 
-                        editable.innerHTML = parseMarkdown(newValue); 
-                    };
-
+                    const saveChange = () => { const newValue = input.value; editable.innerHTML = newValue; updateObjectByPath(battleCardData, editable.dataset.path, newValue); saveData(); };
                     input.addEventListener('blur', saveChange);
-                    input.addEventListener('keydown', (e) => { 
-                        if (e.key === 'Enter' && !isMultiLine) { 
-                            e.preventDefault(); 
-                            input.blur(); 
-                        } 
-                        if (e.key === 'Escape') {
-                             editable.innerHTML = originalHTML; 
-                        }
-                    });
-                }
-            });
-
-            mainContent.addEventListener('click', (e) => {
-                const actionBtn = e.target.closest('[data-action]');
-                const subTabLink = e.target.closest('.sub-tab-link');
-                const expandableRow = e.target.closest('.expandable-row');
-
-                if (isEditMode && actionBtn) {
+                    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); input.blur(); } if (e.key === 'Escape') editable.innerHTML = originalText; });
+                } else if (actionBtn) {
                     e.preventDefault();
-                    e.stopPropagation();
-                    const { action, path } = actionBtn.dataset;
+                    const { action, path, type } = actionBtn.dataset;
                     if (action === 'delete') {
                         if (confirm('Are you sure you want to delete this item?')) { deleteObjectByPath(battleCardData, path); saveData(); renderApp(); }
                     } else if (action === 'add-row') {
                         const array = getObjectByPath(battleCardData, path);
-                        const numColumns = array.length > 0 ? array[0].row.length : 3;
-                        array.push({ row: Array(numColumns).fill("..."), details: [] });
+                        const newRow = type === 'simple' ? { pointer: "New Pointer", painPoint: "...", solution: "..." } : { feature: "New Feature", dronaHq: "...", retool: "..." };
+                        array.push(newRow);
                         saveData();
                         renderApp();
-                    } else if (action === 'add-detail') {
-                        const array = getObjectByPath(battleCardData, path);
-                        if(Array.isArray(array)) {
-                            array.push("New detail line...");
-                            saveData();
-                            renderApp();
-                        }
                     } else if (action === 'add-tab') {
-                        promptForInput("Enter New Tab Title").then(title => {
-                            if (title) {
+                        promptForInput("Enter New Tab Title", true).then(result => {
+                            if (result && result.value) {
                                 const array = getObjectByPath(battleCardData, path);
-                                const newId = `${activeCardId}-${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
-                                array.push({ id: newId, title: title, headers: ["Feature", "DronaHQ", "New Competitor"], content: [] });
-                                saveData();
-                                activeSubTabId = newId;
-                                renderApp();
-                            }
-                        });
-                    } else if (action === 'add-column') {
-                        promptForInput("Enter New Column Header").then(header => {
-                            if (header) {
-                                const tab = getObjectByPath(battleCardData, path);
-                                tab.headers.push(header);
-                                tab.content.forEach(item => item.row.push("..."));
+                                array.push({ id: result.value.toLowerCase().replace(/\s+/g, '-'), title: result.value, type: result.type, content: [] });
                                 saveData();
                                 renderApp();
                             }
                         });
-                    }
-                } else if (subTabLink) { 
-                    e.preventDefault(); 
-                    switchSubTab(activeCardId, subTabLink.dataset.subTabTarget); 
-                } else if (expandableRow) {
-                    const rowIndex = expandableRow.dataset.rowIndex;
-                    const tabId = expandableRow.dataset.tabId;
-                    const key = `${activeCardId}~${tabId}`;
-                    if (!expandedRows[key]) expandedRows[key] = new Set();
-                    
-                    if (expandedRows[key].has(rowIndex)) {
-                        expandedRows[key].delete(rowIndex);
-                    } else {
-                        expandedRows[key].add(rowIndex);
-                    }
-
-                    expandableRow.classList.toggle('row-expanded');
-                    const detailsRow = expandableRow.nextElementSibling;
-                    if (detailsRow && detailsRow.classList.contains('details-row')) {
-                        detailsRow.classList.toggle('expanded');
                     }
                 }
             });
 
             document.getElementById('add-card-btn').addEventListener('click', () => {
-                promptForInput("Enter New Card Title (e.g., Salesforce)").then(title => {
-                    if (title) {
-                        const id = title.toLowerCase().replace(/\s+/g, '-');
+                promptForInput("Enter New Card Title (e.g., Salesforce)").then(result => {
+                    if (result && result.value) {
+                        const id = result.value.toLowerCase().replace(/\s+/g, '-');
                         if (battleCardData[id]) { alert('A card with this ID already exists.'); return; }
-                        battleCardData[id] = { title, subtitle: "New card subtitle...", tabs: [] };
+                        battleCardData[id] = { title: result.value, subtitle: "New card subtitle...", tabs: [] };
                         saveData();
-                        activeCardId = id;
                         renderApp();
                     }
                 });
             });
 
             editModeBtn.addEventListener('click', () => {
-                if (window.innerWidth < 1024) {
-                    alert("Editing is disabled on mobile devices for a better experience.");
-                    return;
-                }
                 if (isEditMode) exitEditMode();
                 else { passwordModal.style.display = 'flex'; passwordInput.focus(); }
             });
@@ -580,5 +450,6 @@
             renderApp();
         });
     </script>
+
 </body>
 </html>
